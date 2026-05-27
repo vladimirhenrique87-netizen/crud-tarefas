@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Tarefas - ADS</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { text-align: center; color: #333; }
+        .form-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { padding: 10px 15px; border: none; background-color: #28a745; color: white; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #218838; }
+        ul { list-style: none; padding: 0; }
+        li { background: #f9f9f9; padding: 10px; border: 1px solid #eee; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .actions { display: flex; gap: 5px; }
+        .btn-edit { background-color: #ffc107; color: black; }
+        .btn-edit:hover { background-color: #e0a800; }
+        .btn-delete { background-color: #dc3545; color: white; }
+        .btn-delete:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📝 Gerenciador de Tarefas</h2>
+    
+    <div class="form-group">
+        <input type="text" id="taskInput" placeholder="Digite uma nova tarefa...">
+        <button id="addBtn" onclick="saveTask()">Adicionar</button>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+    let editId = null;
+
+    // READ: Carrega as tarefas do LocalStorage e exibe na tela
+    function renderTasks() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+
+        tasks.forEach(task => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${task.text}</span>
+                <div class="actions">
+                    <button class="btn-edit" onclick="editTask(${task.id})">Editar</button>
+                    <button class="btn-delete" onclick="deleteTask(${task.id})">Excluir</button>
+                </div>
+            `;
+            taskList.appendChild(li);
+        });
+    }
+
+    // CREATE & UPDATE: Salva ou atualiza uma tarefa
+    function saveTask() {
+        const input = document.getElementById('taskInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        if (editId !== null) {
+            // UPDATE
+            tasks = tasks.map(task => task.id === editId ? { ...task, text } : task);
+            editId = null;
+            document.getElementById('addBtn').innerText = 'Adicionar';
+        } else {
+            // CREATE
+            const newTask = { id: Date.now(), text };
+            tasks.push(newTask);
+        }
+
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        input.value = '';
+        renderTasks();
+    }
+
+    // Prepara a interface para a edição (UPDATE)
+    function editTask(id) {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const task = tasks.find(t => t.id === id);
+        if (task) {
+            document.getElementById('taskInput').value = task.text;
+            editId = id;
+            document.getElementById('addBtn').innerText = 'Atualizar';
+        }
+    }
+
+    // DELETE: Remove a tarefa
+    function deleteTask(id) {
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks = tasks.filter(task => task.id !== id);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        renderTasks();
+    }
+
+    // Inicializa a listagem ao abrir a página
+    renderTasks();
+</script>
+
+</body>
+</html>
+
